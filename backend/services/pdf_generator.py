@@ -8,7 +8,6 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from services import storage
-from services.pdf_generator_legacy import create_budget_pdf_legacy
 
 
 logger = logging.getLogger(__name__)
@@ -264,4 +263,5 @@ def create_budget_pdf(budget, client_data=None):
             "No se pudo generar PDF con HTML->PDF. Se usa fallback legacy. error=%s",
             error,
         )
+        from services.pdf_generator_legacy import create_budget_pdf_legacy
         return create_budget_pdf_legacy(budget, client_data)

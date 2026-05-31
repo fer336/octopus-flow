@@ -45,7 +45,7 @@ function blankItem() {
     quantity: null,
     unit_price: null,
     is_excluded: false,
-    show_quantity: false,
+    show_quantity: true,
     show_price: true,
   };
 }
@@ -397,9 +397,8 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                         <td className="px-4 py-2 text-center">
                           {item.show_quantity ? (
                             <input
-                              type="number"
-                              min="0"
-                              step="0.01"
+                              type="text"
+                              inputMode="decimal"
                               placeholder="—"
                               className="w-full px-2 py-1.5 text-sm bg-transparent border border-transparent focus:border-primary-200 rounded-md outline-none transition-all text-center"
                               value={item.quantity ?? ''}
@@ -407,9 +406,7 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                                 updateItem(
                                   item.id,
                                   'quantity',
-                                  e.target.value === ''
-                                    ? null
-                                    : parseFloat(e.target.value)
+                                  e.target.value === '' ? null : e.target.value
                                 )
                               }
                             />
@@ -420,9 +417,8 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                         <td className="px-4 py-2">
                           {item.show_price ? (
                             <input
-                              type="number"
-                              step="0.01"
-                              min="0"
+                              type="text"
+                              inputMode="decimal"
                               placeholder="$0.00"
                               className="w-full px-3 py-1.5 text-sm bg-transparent border border-transparent focus:border-primary-200 rounded-md outline-none transition-all text-right"
                               value={item.unit_price ?? ''}
@@ -430,9 +426,7 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                                 updateItem(
                                   item.id,
                                   'unit_price',
-                                  e.target.value === ''
-                                    ? null
-                                    : parseFloat(e.target.value)
+                                  e.target.value === '' ? null : e.target.value
                                 )
                               }
                             />
@@ -629,18 +623,16 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                 {sheetItem.show_quantity && (
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       id="sheet-qty"
                       inputMode="decimal"
                       placeholder=" "
-                      min="0"
-                      step="0.01"
                       className={`peer w-full h-12 px-4 pt-4 pb-1 text-sm border rounded-xl outline-none transition-all focus:border-2 bg-transparent ${borderClass(sheetItem.quantity)}`}
                       value={sheetItem.quantity ?? ''}
                       onChange={(e) =>
                         updateSheetField(
                           'quantity',
-                          e.target.value === '' ? null : parseFloat(e.target.value)
+                          e.target.value === '' ? null : e.target.value
                         )
                       }
                     />
@@ -652,18 +644,16 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                 {sheetItem.show_price && (
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       id="sheet-price"
                       inputMode="decimal"
                       placeholder=" "
-                      min="0"
-                      step="0.01"
                       className={`peer w-full h-12 px-4 pt-4 pb-1 text-sm border rounded-xl outline-none transition-all focus:border-2 bg-transparent ${borderClass(sheetItem.unit_price)}`}
                       value={sheetItem.unit_price ?? ''}
                       onChange={(e) =>
                         updateSheetField(
                           'unit_price',
-                          e.target.value === '' ? null : parseFloat(e.target.value)
+                          e.target.value === '' ? null : e.target.value
                         )
                       }
                     />
