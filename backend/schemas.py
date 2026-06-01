@@ -107,7 +107,8 @@ class BudgetItemResponse(BudgetItemBase):
 # --- Budgets ---
 class BudgetBase(BaseModel):
     client: str
-    validity: str = "15 días"
+    validity: Optional[str] = "15 días"
+    accent_color: Optional[str] = "#2563eb"
     is_manual_total: int = 0
     total: Optional[float] = None
 
@@ -121,6 +122,7 @@ class BudgetUpdate(BaseModel):
     client: Optional[str] = None
     date: Optional[datetime] = None
     validity: Optional[str] = None
+    accent_color: Optional[str] = None
     status: Optional[str] = None
     total: Optional[float] = None
     is_manual_total: Optional[int] = None

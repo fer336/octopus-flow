@@ -56,6 +56,8 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
   const [client, setClient] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [validity, setValidity] = useState('15 días');
+  const [validityEnabled, setValidityEnabled] = useState(true);
+  const [accentColor, setAccentColor] = useState('#2563eb');
   const [status, setStatus] = useState('Pendiente');
   const [isManualMode, setIsManualMode] = useState(false);
   const [manualTotal, setManualTotal] = useState(0);
@@ -71,7 +73,10 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
       if (initialData) {
         setClient(initialData.client);
         setDate(new Date(initialData.date).toISOString().split('T')[0]);
-        setValidity(initialData.validity || '15 días');
+        const v = initialData.validity;
+        setValidity(v || '15 días');
+        setValidityEnabled(v !== null && v !== undefined && v !== '');
+        setAccentColor(initialData.accent_color || '#2563eb');
         setStatus(initialData.status);
         setIsManualMode(initialData.is_manual_total === 1);
         setManualTotal(initialData.total);
@@ -85,6 +90,8 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
         setClient('');
         setDate(new Date().toISOString().split('T')[0]);
         setValidity('15 días');
+        setValidityEnabled(true);
+        setAccentColor('#2563eb');
         setStatus('Pendiente');
         setIsManualMode(false);
         setManualTotal(0);
@@ -122,7 +129,8 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
     const budgetData = {
       client,
       date: new Date(date).toISOString(),
-      validity,
+      validity: validityEnabled ? validity : null,
+      accent_color: accentColor,
       status: initialData ? status : undefined,
       is_manual_total: isManualMode ? 1 : 0,
       total: isManualMode ? parseFloat(manualTotal) : undefined,
@@ -216,16 +224,79 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Validez</label>
-                <select
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none transition-all appearance-none"
-                  value={validity}
-                  onChange={(e) => setValidity(e.target.value)}
-                >
-                  <option>7 días</option>
-                  <option>15 días</option>
-                  <option>30 días</option>
-                </select>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Validez</label>
+                  <button
+                    type="button"
+                    onClick={() => setValidityEnabled(v => !v)}
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-all ${validityEnabled ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'}`}
+                  >
+                    {validityEnabled ? 'Activada' : 'Sin validez'}
+                  </button>
+                </div>
+                {validityEnabled ? (
+                  <>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                      value={validity}
+                      onChange={(e) => setValidity(e.target.value)}
+                      placeholder="Ej: 15 días"
+                    />
+                    <div className="flex gap-1.5 mt-1.5">
+                      {['7 días', '15 días', '30 días'].map(opt => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setValidity(opt)}
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-semibold transition-all ${validity === opt ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="px-4 py-2 bg-slate-50 border border-dashed border-slate-200 rounded-lg text-xs text-slate-400 italic">
+                    No se mostrará validez en el presupuesto
+                  </div>
+                )}
+              </div>
+
+              <div className="md:col-span-3">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Color del presupuesto</label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {[
+                    { name: 'Azul',    value: '#2563eb' },
+                    { name: 'Rojo',    value: '#dc2626' },
+                    { name: 'Verde',   value: '#16a34a' },
+                    { name: 'Amarillo',value: '#ca8a04' },
+                    { name: 'Naranja', value: '#ea580c' },
+                    { name: 'Violeta', value: '#9333ea' },
+                    { name: 'Negro',   value: '#1e293b' },
+                  ].map(({ name, value }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      title={name}
+                      onClick={() => setAccentColor(value)}
+                      className="w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor: value,
+                        borderColor: accentColor === value ? '#fff' : 'transparent',
+                        outline: accentColor === value ? `3px solid ${value}` : 'none',
+                        outlineOffset: '1px',
+                      }}
+                    >
+                      {accentColor === value && (
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                  <span className="text-xs text-slate-400 ml-1" style={{ color: accentColor }}>■ {['Azul','Rojo','Verde','Amarillo','Naranja','Violeta','Negro'][['#2563eb','#dc2626','#16a34a','#ca8a04','#ea580c','#9333ea','#1e293b'].indexOf(accentColor)] ?? 'Personalizado'}</span>
+                </div>
               </div>
 
               {initialData && (

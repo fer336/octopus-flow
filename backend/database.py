@@ -64,6 +64,20 @@ def ensure_legacy_schema_compatibility():
         except Exception as e:
             print(f"Warning: No se pudo agregar columna tipo_inmueble: {e}")
 
+    if "budgets" in table_names:
+        budget_columns = {column["name"] for column in inspector.get_columns("budgets")}
+        budget_cols_sql = {
+            "accent_color": "ALTER TABLE budgets ADD COLUMN accent_color VARCHAR DEFAULT '#2563eb'",
+        }
+        for column_name, ddl in budget_cols_sql.items():
+            if column_name not in budget_columns:
+                try:
+                    with engine.begin() as connection:
+                        connection.execute(text(ddl))
+                    print(f"INFO: Columna budgets.{column_name} agregada automáticamente.")
+                except Exception as e:
+                    print(f"Warning: No se pudo agregar columna budgets.{column_name}: {e}")
+
     if "budget_items" in table_names:
         item_columns = {column["name"] for column in inspector.get_columns("budget_items")}
         budget_item_cols_sql = {

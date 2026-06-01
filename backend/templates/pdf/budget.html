@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Presupuesto {{ budget.number }}</title>
+  <style>:root { --accent: {{ budget.accent_color }}; }</style>
 </head>
 <body>
   {% macro safe_val(v) %}{{ v if v and v != '-' else '—' }}{% endmacro %}
@@ -20,7 +21,9 @@
         <div class="doc-number">{{ budget.number }}</div>
         <div class="doc-dates">
           <div class="doc-date-row">Fecha: <strong>{{ budget.date }}</strong></div>
+          {% if budget.validity %}
           <div class="doc-date-row">Validez: <strong>{{ budget.validity }}</strong></div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -128,10 +131,12 @@
 
     <div class="footer">
       <div class="footer-note">{{ footer.note }}</div>
+      {% if budget.validity %}
       <div>
         <div class="footer-validity-label">Válido por</div>
         <div class="footer-validity-value">{{ budget.validity }}</div>
       </div>
+      {% endif %}
     </div>
   </div>
 </body>

@@ -51,10 +51,11 @@ def create_budget(
     # Create budget
     db_budget = Budget(
         budget_id=budget_id,
-        user_id=current_user.id,  # Assign to current user
+        user_id=current_user.id,
         client=budget.client,
         date=budget.date or datetime.utcnow(),
         validity=budget.validity,
+        accent_color=budget.accent_color,
         status=BudgetStatus.PENDIENTE,
         total=final_total,
         is_manual_total=budget.is_manual_total,

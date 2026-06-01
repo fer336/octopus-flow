@@ -7,7 +7,7 @@
 }
 
 :root {
-  --accent: #2563eb;
+  --accent: #2563eb; /* overridden per-budget via inline <style> */
   --text: #111827;
   --text-soft: #374151;
   --text-muted: #9ca3af;

@@ -317,6 +317,8 @@ export default function LoginPage({ onSuccess, onError }) {
 
       <p className="mt-3 text-center text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
         © {new Date().getFullYear()} OctopusTrack. Todos los derechos reservados.
+        <br />
+        <span className="opacity-50">v1.5.0</span>
       </p>
       </div>
     </div>

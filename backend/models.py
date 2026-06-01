@@ -82,7 +82,8 @@ class Budget(Base):
     )  # PR-001, PR-002 (Unique constraint is handled at DB level: user_id + budget_id)
     client = Column(String, nullable=False)
     date = Column(DateTime, default=datetime.utcnow)
-    validity = Column(String, default="15 días")
+    validity = Column(String, nullable=True, default="15 días")
+    accent_color = Column(String, nullable=True, default="#2563eb")
     status = Column(SQLEnum(BudgetStatus), default=BudgetStatus.PENDIENTE)
     total = Column(Float, default=0.0)
     is_manual_total = Column(Integer, default=0)  # 0 = automatic, 1 = manual
