@@ -121,7 +121,7 @@ jobs:
           echo "Tags CMS: ${{ steps.meta_cms.outputs.tags }}"
 
       - name: Notify Portainer
-        if: vars.PORTAINER_WEBHOOK_URL && github.ref_name == 'main'
+        if: vars.PORTAINER_WEBHOOK_URL && (github.ref_name == 'main' || github.event_name == 'release')
         run: |
           echo "Notifying Portainer..."
           curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL }}" \
