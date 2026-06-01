@@ -227,9 +227,7 @@ def _build_context(budget, client_data=None):
         },
         "items": included_items,
         "excluded_items": excluded_items,
-        "footer": {
-            "note": "Se muestran exclusivamente los datos disponibles en el sistema.",
-        },
+        "footer": {},
     }
 
 
