@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from datetime import datetime
 
@@ -138,6 +138,16 @@ class BudgetResponse(BudgetBase):
     created_at: datetime
     updated_at: datetime
     items: List[BudgetItemResponse] = []
+
+    @field_validator('validity', mode='before')
+    @classmethod
+    def coerce_validity(cls, v):
+        return v if v is not None else ''
+
+    @field_validator('accent_color', mode='before')
+    @classmethod
+    def coerce_accent_color(cls, v):
+        return v if v is not None else '#2563eb'
 
     class Config:
         from_attributes = True
