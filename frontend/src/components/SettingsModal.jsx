@@ -210,6 +210,7 @@ export default function SettingsModal({ isOpen, onClose }) {
   const logoPreviewSrc = preview || existingLogo;
   const pdfFontSize = Number(companyData.pdf_font_size) || DEFAULT_PDF_FONT_SIZE;
   const pdfDescriptionFontSize = Number(companyData.pdf_description_font_size) || DEFAULT_PDF_DESCRIPTION_FONT_SIZE;
+  const logoPreviewWidth = `${Math.min(45, (logoSize / 794) * 100)}%`;
   const handleSaveActiveSettings = activeTab === 'pdf' ? handleSavePdf : handleSaveCompany;
   const saveButtonLabel = activeTab === 'pdf' ? 'Guardar PDF' : 'Guardar Empresa';
 
@@ -350,29 +351,39 @@ export default function SettingsModal({ isOpen, onClose }) {
                   className="w-full accent-primary-600"
                 />
 
-                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                   <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
                     Vista preliminar del encabezado
                   </div>
-                  <div className="flex min-h-[120px] items-start justify-between gap-6 border-t-4 border-primary-600 pt-6">
-                    <div className="flex min-h-24 flex-1 items-start">
-                      {logoPreviewSrc ? (
-                        <img
-                          src={logoPreviewSrc}
-                          alt="Vista preliminar del logo en PDF"
-                          className="max-h-24 object-contain object-left"
-                          style={{ width: `${logoSize}px`, maxWidth: '100%' }}
-                        />
-                      ) : (
-                        <div className="flex h-16 w-40 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs font-bold text-slate-400">
-                          Sin logo
+                  <div className="rounded-xl bg-slate-100 p-3">
+                    <div className="mx-auto w-full max-w-[560px] rounded-lg bg-white p-4 shadow-sm sm:p-5">
+                      <div className="h-1.5 rounded-full bg-primary-600"></div>
+                      <div className="mt-4 flex min-h-[108px] items-start justify-between gap-4 sm:gap-6">
+                        <div className="flex min-h-20 flex-1 items-start">
+                          {logoPreviewSrc ? (
+                            <img
+                              src={logoPreviewSrc}
+                              alt="Vista preliminar del logo en PDF"
+                              className="max-h-24 object-contain object-left"
+                              style={{ width: logoPreviewWidth, minWidth: '34px' }}
+                            />
+                          ) : (
+                            <div className="flex h-14 w-28 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs font-bold text-slate-400 sm:w-36">
+                              Sin logo
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-600">Presupuesto</p>
-                      <p className="mt-1 text-xl font-black text-slate-900">PR-001</p>
-                      <p className="mt-2 text-xs text-slate-400">Fecha: <span className="font-semibold text-slate-600">10/6/2026</span></p>
+                        <div className="shrink-0 text-right">
+                          <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-primary-600 sm:text-[10px]">Presupuesto</p>
+                          <p className="mt-1 text-lg font-black text-slate-900 sm:text-xl">PR-001</p>
+                          <p className="mt-2 text-[10px] text-slate-400 sm:text-xs">Fecha: <span className="font-semibold text-slate-600">10/6/2026</span></p>
+                        </div>
+                      </div>
+                      <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-[9px] text-slate-400 sm:text-[10px]">
+                        <span>Cliente</span>
+                        <span>Validez</span>
+                        <span className="text-right">Total</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -478,27 +489,65 @@ export default function SettingsModal({ isOpen, onClose }) {
                     Vista preliminar de la tabla
                   </div>
                   <div className="overflow-hidden rounded-lg border border-slate-200">
-                    <div className="grid grid-cols-[1fr_72px_96px_96px] bg-primary-600 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-white">
-                      <span>Descripción</span>
-                      <span className="text-right">Cant.</span>
-                      <span className="text-right">P. Unitario</span>
-                      <span className="text-right">Total</span>
+                    <div className="hidden sm:block">
+                      <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_5.8rem_5.8rem] bg-primary-600 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-white">
+                        <span>Descripción</span>
+                        <span className="text-right">Cant.</span>
+                        <span className="text-right">P. Unitario</span>
+                        <span className="text-right">Total</span>
+                      </div>
+                      <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_5.8rem_5.8rem] items-center gap-0 px-3 py-3 text-slate-600" style={{ fontSize: `${pdfFontSize}px` }}>
+                        <span className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
+                          Reparación y mantenimiento general con materiales incluidos
+                        </span>
+                        <span className="text-right font-semibold">2</span>
+                        <span className="text-right font-semibold">$45.000,00</span>
+                        <span className="text-right font-semibold">$90.000,00</span>
+                      </div>
+                      <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_5.8rem_5.8rem] items-center bg-slate-50 px-3 py-3 text-slate-600" style={{ fontSize: `${pdfFontSize}px` }}>
+                        <span className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
+                          Mano de obra especializada
+                        </span>
+                        <span className="text-right font-semibold">1</span>
+                        <span className="text-right font-semibold">$30.000,00</span>
+                        <span className="text-right font-semibold">$30.000,00</span>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-[1fr_72px_96px_96px] items-center gap-0 px-3 py-3 text-slate-600" style={{ fontSize: `${pdfFontSize}px` }}>
-                      <span className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
-                        Reparación y mantenimiento general con materiales incluidos
-                      </span>
-                      <span className="text-right font-semibold">2</span>
-                      <span className="text-right font-semibold">$45.000,00</span>
-                      <span className="text-right font-semibold">$90.000,00</span>
-                    </div>
-                    <div className="grid grid-cols-[1fr_72px_96px_96px] items-center bg-slate-50 px-3 py-3 text-slate-600" style={{ fontSize: `${pdfFontSize}px` }}>
-                      <span className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
-                        Mano de obra especializada
-                      </span>
-                      <span className="text-right font-semibold">1</span>
-                      <span className="text-right font-semibold">$30.000,00</span>
-                      <span className="text-right font-semibold">$30.000,00</span>
+
+                    <div className="sm:hidden">
+                      <div className="bg-primary-600 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-white">
+                        Tabla del PDF
+                      </div>
+                      <div className="space-y-3 px-3 py-3">
+                        <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-sm" style={{ fontSize: `${pdfFontSize}px` }}>
+                          <p className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
+                            Reparación y mantenimiento general con materiales incluidos
+                          </p>
+                          <div className="mt-3 grid grid-cols-3 gap-2 text-slate-600">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wide text-slate-400">Cant.</p>
+                              <p className="font-semibold">2</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wide text-slate-400">P. Unit.</p>
+                              <p className="font-semibold">$45.000</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] uppercase tracking-wide text-slate-400">Total</p>
+                              <p className="font-semibold">$90.000</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="rounded-lg bg-slate-50 p-3" style={{ fontSize: `${pdfFontSize}px` }}>
+                          <p className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
+                            Mano de obra especializada
+                          </p>
+                          <div className="mt-3 flex items-center justify-between text-slate-600">
+                            <span className="font-semibold">1 x $30.000</span>
+                            <span className="font-semibold">$30.000</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <p className="mt-3 text-xs text-slate-400">
