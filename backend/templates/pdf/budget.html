@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Presupuesto {{ budget.number }}</title>
-  <style>:root { --accent: {{ budget.accent_color }}; }</style>
+  <style>:root { --accent: {{ budget.accent_color }}; --pdf-font-size: {{ budget.font_size }}px; --pdf-description-font-size: {{ budget.description_font_size }}px; }</style>
 </head>
 <body>
   {% macro safe_val(v) %}{{ v if v and v != '-' else '—' }}{% endmacro %}
@@ -13,7 +13,7 @@
     <div class="header{% if not company.logo_data_uri %} header--centered{% endif %}">
       {% if company.logo_data_uri %}
       <div class="brand">
-        <img src="{{ company.logo_data_uri }}" alt="Logo" />
+        <img src="{{ company.logo_data_uri }}" alt="Logo" style="max-width: {{ company.logo_size }}px;" />
       </div>
       {% endif %}
       <div class="doc-info">

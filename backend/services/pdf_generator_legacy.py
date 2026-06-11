@@ -109,7 +109,10 @@ def _build_company_block(logo, budget, company_name_style, company_meta_style):
 
 
 def _build_logo(budget):
-    logo_url = getattr(getattr(budget, "user", None), "logo_url", None)
+    user = getattr(budget, "user", None)
+    logo_url = getattr(user, "logo_url", None)
+    logo_size = getattr(user, "logo_size", None) or 180
+    logo_size = max(80, min(int(logo_size), 320))
 
     try:
         if not logo_url:
@@ -132,8 +135,8 @@ def _build_logo(budget):
         img = Image(logo_io, lazy=0)
 
         aspect_ratio = img.drawHeight / float(img.drawWidth)
-        max_width = 5.2 * cm
-        max_height = 1.8 * cm
+        max_width = (logo_size / 180) * 5.2 * cm
+        max_height = (logo_size / 180) * 1.8 * cm
 
         draw_width = max_width
         draw_height = draw_width * aspect_ratio
@@ -157,6 +160,11 @@ def _build_logo(budget):
 
 def create_budget_pdf_legacy(budget, client_data=None):
     buffer = BytesIO()
+    user = getattr(budget, "user", None)
+    pdf_font_size = getattr(user, "pdf_font_size", None) or 13
+    pdf_font_size = max(10, min(int(pdf_font_size), 18))
+    pdf_description_font_size = getattr(user, "pdf_description_font_size", None) or 14
+    pdf_description_font_size = max(11, min(int(pdf_description_font_size), 22))
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
@@ -235,8 +243,8 @@ def create_budget_pdf_legacy(budget, client_data=None):
         "Header",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=10,
-        leading=13,
+        fontSize=max(9, pdf_font_size - 2),
+        leading=max(12, pdf_font_size + 1),
         alignment=1,
         textColor=WHITE_COLOR,
     )
@@ -244,8 +252,16 @@ def create_budget_pdf_legacy(budget, client_data=None):
         "Item",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=10,
-        leading=13,
+        fontSize=pdf_font_size,
+        leading=pdf_font_size + 3,
+        textColor=TEXT_COLOR,
+    )
+    description_item_style = ParagraphStyle(
+        "DescriptionItem",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=pdf_description_font_size,
+        leading=pdf_description_font_size + 3,
         textColor=TEXT_COLOR,
     )
     total_label_style = ParagraphStyle(
@@ -285,8 +301,8 @@ def create_budget_pdf_legacy(budget, client_data=None):
         "QtyHeader",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=10,
-        leading=13,
+        fontSize=max(9, pdf_font_size - 2),
+        leading=max(12, pdf_font_size + 1),
         alignment=2,
         textColor=WHITE_COLOR,
     )
@@ -294,8 +310,8 @@ def create_budget_pdf_legacy(budget, client_data=None):
         "Qty",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=10,
-        leading=13,
+        fontSize=pdf_font_size,
+        leading=pdf_font_size + 3,
         alignment=2,
         textColor=TEXT_COLOR,
     )
@@ -303,8 +319,8 @@ def create_budget_pdf_legacy(budget, client_data=None):
         "UnitPriceHeader",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=10,
-        leading=13,
+        fontSize=max(9, pdf_font_size - 2),
+        leading=max(12, pdf_font_size + 1),
         alignment=2,
         textColor=WHITE_COLOR,
     )
@@ -312,8 +328,8 @@ def create_budget_pdf_legacy(budget, client_data=None):
         "UnitPrice",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=10,
-        leading=13,
+        fontSize=pdf_font_size,
+        leading=pdf_font_size + 3,
         alignment=2,
         textColor=TEXT_COLOR,
     )
@@ -482,7 +498,7 @@ def create_budget_pdf_legacy(budget, client_data=None):
         item_rows.append(
             [
                 Paragraph(str(index), item_style),
-                Paragraph(description, item_style),
+                Paragraph(description, description_item_style),
                 Paragraph(qty_text, qty_style),
                 Paragraph(price_text, unit_price_style),
                 Paragraph(_format_currency(amount), item_style),
@@ -492,7 +508,7 @@ def create_budget_pdf_legacy(budget, client_data=None):
     if len(item_rows) == 1:
         item_rows.append(
             [
-                Paragraph("-", item_style),
+                Paragraph("-", description_item_style),
                 Paragraph("-", item_style),
                 Paragraph("-", qty_style),
                 Paragraph("-", unit_price_style),

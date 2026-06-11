@@ -9,6 +9,9 @@ class UserBase(BaseModel):
     name: Optional[str] = None
     picture: Optional[str] = None
     logo_url: Optional[str] = None
+    logo_size: Optional[int] = Field(default=180, ge=80, le=320)
+    pdf_font_size: Optional[int] = Field(default=13, ge=10, le=18)
+    pdf_description_font_size: Optional[int] = Field(default=14, ge=11, le=22)
 
 
 class UserCreate(UserBase):
@@ -39,6 +42,9 @@ class UserResponse(UserBase):
 class CompanySettingsBase(BaseModel):
     """Campos editables de branding para la empresa del usuario."""
     name: Optional[str] = None
+    logo_size: Optional[int] = Field(default=None, ge=80, le=320)
+    pdf_font_size: Optional[int] = Field(default=None, ge=10, le=18)
+    pdf_description_font_size: Optional[int] = Field(default=None, ge=11, le=22)
     company_name: Optional[str] = None
     business_name: Optional[str] = None
     tax_id: Optional[str] = None

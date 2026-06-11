@@ -422,60 +422,68 @@ export default function App() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full table-fixed border-collapse text-center">
+                <colgroup>
+                  <col className="w-[11%]" />
+                  <col className="w-[25%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[16%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[18%]" />
+                </colgroup>
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide">ID</th>
-                    <th className="px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide">Fecha</th>
-                    <th className="px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide">Cliente</th>
-                    <th className="w-36 px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide">Estado</th>
-                    <th className="w-36 px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide text-right">Total</th>
-                    <th className="w-36 px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide text-center">Acciones</th>
+                    <th className="px-2 py-1.5 text-[10px] font-semibold uppercase text-slate-500 tracking-wide">ID</th>
+                    <th className="px-2 py-1.5 text-[10px] font-semibold uppercase text-slate-500 tracking-wide">Cliente</th>
+                    <th className="px-2 py-1.5 text-[10px] font-semibold uppercase text-slate-500 tracking-wide">Fecha</th>
+                    <th className="px-2 py-1.5 text-[10px] font-semibold uppercase text-slate-500 tracking-wide">Total</th>
+                    <th className="px-2 py-1.5 text-[10px] font-semibold uppercase text-slate-500 tracking-wide">Estado</th>
+                    <th className="px-2 py-1.5 text-[10px] font-semibold uppercase text-slate-500 tracking-wide">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {filteredBudgets.map((budget) => (
                     <tr key={budget.id} className="hover:bg-slate-50 transition-colors group">
-                      <td className="px-3 py-2 font-mono text-xs text-primary-600 font-medium">{budget.budget_id}</td>
-                      <td className="px-3 py-2 text-sm text-slate-500">
+                      <td className="px-2 py-1.5 font-mono text-xs font-medium text-primary-600 whitespace-nowrap">{budget.budget_id}</td>
+                      <td className="px-2 py-1.5 text-sm font-medium text-slate-800 truncate">{budget.client}</td>
+                      <td className="px-2 py-1.5 text-sm text-slate-500 whitespace-nowrap">
                         {new Date(budget.date).toLocaleDateString('es-ES')}
                       </td>
-                      <td className="px-3 py-2 text-sm font-medium text-slate-800">{budget.client}</td>
-                      <td className="w-36 px-3 py-2">
-                        <StatusBadge status={budget.status} />
-                      </td>
-                      <td className="w-36 px-3 py-2 text-right text-sm font-bold text-slate-900">
+                      <td className="px-2 py-1.5 text-sm font-bold text-slate-900 whitespace-nowrap">
                         ${budget.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="w-36 px-3 py-2 text-center">
-                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <td className="px-2 py-1.5">
+                        <StatusBadge status={budget.status} />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <div className="flex items-center justify-center gap-1.5">
                           <button 
                             onClick={() => handleViewPDF(budget.id)}
-                            className="p-1.5 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
+                            className="p-1 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
                             title="Ver Presupuesto"
                           >
-                            <Eye size={16} />
+                            <Eye size={15} />
                           </button>
                           <button 
                             onClick={() => handleSharePDF(budget.id, budget.budget_id, budget.client)}
-                            className="p-1.5 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
+                            className="p-1 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
                             title="Compartir"
                           >
-                            <Share2 size={16} />
+                            <Share2 size={15} />
                           </button>
                           <button 
                             onClick={() => openEditBudgetModal(budget)}
-                            className="p-1.5 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
+                            className="p-1 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
                             title="Editar Presupuesto"
                           >
-                            <Edit2 size={16} />
+                            <Edit2 size={15} />
                           </button>
                           <button 
                             onClick={() => requestDelete(budget)}
-                            className="p-1.5 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-red-500 shadow-sm transition-all"
+                            className="p-1 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-red-500 shadow-sm transition-all"
                             title="Eliminar"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </td>

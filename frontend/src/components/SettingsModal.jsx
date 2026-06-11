@@ -23,8 +23,18 @@ const BRANDING_FIELDS = [
   { key: 'payment_terms', label: 'Términos de Pago', placeholder: 'Ej: Efectivo,Transferencia,Tarjeta', hint: 'Aparece en el PDF' },
 ];
 
+const DEFAULT_LOGO_SIZE = 180;
+const MIN_LOGO_SIZE = 80;
+const MAX_LOGO_SIZE = 320;
+const DEFAULT_PDF_FONT_SIZE = 13;
+const MIN_PDF_FONT_SIZE = 10;
+const MAX_PDF_FONT_SIZE = 18;
+const DEFAULT_PDF_DESCRIPTION_FONT_SIZE = 14;
+const MIN_PDF_DESCRIPTION_FONT_SIZE = 11;
+const MAX_PDF_DESCRIPTION_FONT_SIZE = 22;
+
 export default function SettingsModal({ isOpen, onClose }) {
-  const [activeTab, setActiveTab] = useState('logo'); // 'logo' | 'company'
+  const [activeTab, setActiveTab] = useState('logo'); // 'logo' | 'company' | 'pdf'
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [existingLogo, setExistingLogo] = useState(null);
@@ -75,6 +85,7 @@ export default function SettingsModal({ isOpen, onClose }) {
       setDeletingLogo(false);
       setActiveTab('logo');
       checkExistingLogo();
+      loadCompanySettings();
     }
   }, [isOpen]);
 
@@ -117,12 +128,17 @@ export default function SettingsModal({ isOpen, onClose }) {
     }
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-
+  const handleSaveLogo = async () => {
     try {
       setLogoLoading(true);
-      await companyService.uploadLogo(selectedFile);
+      if (selectedFile) {
+        await companyService.uploadLogo(selectedFile);
+      }
+
+      const savedSettings = await companyService.updateSettings({
+        logo_size: Number(companyData.logo_size) || DEFAULT_LOGO_SIZE,
+      });
+      setCompanyData(savedSettings);
       setLogoStatus('success');
       await checkExistingLogo();
       setPreview(null);
@@ -170,11 +186,36 @@ export default function SettingsModal({ isOpen, onClose }) {
     }
   };
 
+  const handleSavePdf = async () => {
+    try {
+      setCompanySaving(true);
+      const savedSettings = await companyService.updateSettings({
+        pdf_font_size: Number(companyData.pdf_font_size) || DEFAULT_PDF_FONT_SIZE,
+        pdf_description_font_size: Number(companyData.pdf_description_font_size) || DEFAULT_PDF_DESCRIPTION_FONT_SIZE,
+      });
+      setCompanyData(savedSettings);
+      setCompanyStatus({ type: 'success', message: 'Configuración del PDF guardada correctamente' });
+      setTimeout(() => setCompanyStatus(null), 2000);
+    } catch (error) {
+      console.error('Error saving PDF settings:', error);
+      setCompanyStatus({ type: 'error', message: 'Error al guardar. Intentá de nuevo.' });
+    } finally {
+      setCompanySaving(false);
+    }
+  };
+
   if (!isOpen) return null;
+
+  const logoSize = Number(companyData.logo_size) || DEFAULT_LOGO_SIZE;
+  const logoPreviewSrc = preview || existingLogo;
+  const pdfFontSize = Number(companyData.pdf_font_size) || DEFAULT_PDF_FONT_SIZE;
+  const pdfDescriptionFontSize = Number(companyData.pdf_description_font_size) || DEFAULT_PDF_DESCRIPTION_FONT_SIZE;
+  const handleSaveActiveSettings = activeTab === 'pdf' ? handleSavePdf : handleSaveCompany;
+  const saveButtonLabel = activeTab === 'pdf' ? 'Guardar PDF' : 'Guardar Empresa';
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2">
@@ -210,20 +251,31 @@ export default function SettingsModal({ isOpen, onClose }) {
             <Building2 size={14} className="inline mr-1.5 mb-0.5" />
             Mi Empresa
           </button>
+          <button
+            onClick={() => setActiveTab('pdf')}
+            className={`py-3 px-1 ml-5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'pdf'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <FileText size={14} className="inline mr-1.5 mb-0.5" />
+            PDF
+          </button>
         </div>
 
-        <div className="p-6 max-h-[60vh] overflow-y-auto">
+        <div className="p-6 max-h-[70vh] overflow-y-auto">
           {/* === LOGO TAB === */}
           {activeTab === 'logo' && (
             <div>
               <h3 className="font-bold text-slate-700 mb-2">Logo / Encabezado</h3>
               <p className="text-sm text-slate-500 mb-4">
-                Subí una imagen con tu logo o encabezado completo para que aparezca en la parte superior de los presupuestos PDF.
+                Subí una imagen y ajustá su tamaño para que aparezca en el encabezado de los presupuestos PDF.
               </p>
 
               <div
-                className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[160px] ${
-                  preview ? 'border-primary-300 bg-primary-50/10' : 'border-slate-300 hover:border-primary-400 hover:bg-slate-50'
+                className={`rounded-xl border p-4 flex items-center justify-between gap-4 cursor-pointer transition-all ${
+                  preview ? 'border-primary-200 bg-primary-50/30' : 'border-slate-200 bg-white hover:border-primary-300 hover:bg-slate-50'
                 }`}
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -235,40 +287,95 @@ export default function SettingsModal({ isOpen, onClose }) {
                   onChange={handleFileSelect}
                 />
 
-                {preview ? (
-                  <div className="relative w-full">
-                    <img src={preview} alt="Logo Preview" className="max-h-32 mx-auto object-contain rounded-lg shadow-sm" />
-                    <div className="mt-4 text-center">
-                      <span className="text-xs font-bold text-primary-600 bg-primary-100 px-2 py-1 rounded-full">Nueva Imagen</span>
+                {logoPreviewSrc ? (
+                  <>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-12 w-20 rounded-lg border border-slate-200 bg-slate-50 p-2 flex items-center justify-center shrink-0">
+                        <img src={logoPreviewSrc} alt="Logo seleccionado" className="max-h-full max-w-full object-contain" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-700">{preview ? 'Nueva imagen seleccionada' : 'Logo actual'}</p>
+                        <p className="text-xs text-slate-400">Clic para cambiar la imagen</p>
+                      </div>
                     </div>
-                  </div>
-                ) : existingLogo ? (
-                  <div className="relative w-full">
-                    <img src={existingLogo} alt="Current Logo" className="max-h-32 mx-auto object-contain rounded-lg" />
-                    <div className="mt-4 text-center">
-                      <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Logo Actual</span>
-                      <p className="text-xs text-slate-400 mt-2">Haz clic para cambiar</p>
-                    </div>
-                    <div className="mt-3 text-center">
+                    {existingLogo && !preview && (
                       <button
                         type="button"
-                        onClick={handleDeleteLogo}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteLogo();
+                        }}
                         disabled={deletingLogo}
-                        className="px-4 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-all border border-red-200 disabled:opacity-50"
+                        className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-all border border-red-200 disabled:opacity-50 shrink-0"
                       >
-                        {deletingLogo ? 'Eliminando...' : 'Eliminar Logo'}
+                        {deletingLogo ? 'Eliminando...' : 'Eliminar'}
                       </button>
-                    </div>
-                  </div>
+                    )}
+                  </>
                 ) : (
                   <>
-                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
                       <ImageIcon size={24} />
                     </div>
-                    <p className="text-sm font-bold text-slate-600">Haz clic para subir imagen</p>
-                    <p className="text-xs text-slate-400 mt-1">PNG, JPG recomendado</p>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-slate-600">Haz clic para subir imagen</p>
+                      <p className="text-xs text-slate-400 mt-1">PNG, JPG recomendado</p>
+                    </div>
                   </>
                 )}
+              </div>
+
+              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div>
+                    <label htmlFor="logo-size" className="text-sm font-bold text-slate-700">
+                      Tamaño del logo
+                    </label>
+                    <p className="text-xs text-slate-400">Ajusta el ancho usado en el PDF</p>
+                  </div>
+                  <span className="text-xs font-bold text-primary-700 bg-primary-50 border border-primary-100 rounded-full px-2.5 py-1">
+                    {logoSize}px
+                  </span>
+                </div>
+                <input
+                  id="logo-size"
+                  type="range"
+                  min={MIN_LOGO_SIZE}
+                  max={MAX_LOGO_SIZE}
+                  step="10"
+                  value={logoSize}
+                  onChange={(e) =>
+                    setCompanyData((prev) => ({ ...prev, logo_size: Number(e.target.value) }))
+                  }
+                  className="w-full accent-primary-600"
+                />
+
+                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    Vista preliminar del encabezado
+                  </div>
+                  <div className="flex min-h-[120px] items-start justify-between gap-6 border-t-4 border-primary-600 pt-6">
+                    <div className="flex min-h-24 flex-1 items-start">
+                      {logoPreviewSrc ? (
+                        <img
+                          src={logoPreviewSrc}
+                          alt="Vista preliminar del logo en PDF"
+                          className="max-h-24 object-contain object-left"
+                          style={{ width: `${logoSize}px`, maxWidth: '100%' }}
+                        />
+                      ) : (
+                        <div className="flex h-16 w-40 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs font-bold text-slate-400">
+                          Sin logo
+                        </div>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-600">Presupuesto</p>
+                      <p className="mt-1 text-xl font-black text-slate-900">PR-001</p>
+                      <p className="mt-2 text-xs text-slate-400">Fecha: <span className="font-semibold text-slate-600">10/6/2026</span></p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -304,6 +411,103 @@ export default function SettingsModal({ isOpen, onClose }) {
               )}
             </div>
           )}
+
+          {/* === PDF TAB === */}
+          {activeTab === 'pdf' && (
+            <div>
+              <h3 className="font-bold text-slate-700 mb-2">Estilo del PDF</h3>
+              <p className="text-sm text-slate-500 mb-4">
+                Ajustá el tamaño de la letra de la tabla para que el presupuesto quede cómodo y legible.
+              </p>
+
+              <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div>
+                      <label htmlFor="pdf-font-size" className="text-sm font-bold text-slate-700">
+                        Tamaño de letra general
+                      </label>
+                      <p className="text-xs text-slate-400">Afecta cantidades, precios y totales de la tabla</p>
+                    </div>
+                    <span className="text-xs font-bold text-primary-700 bg-primary-50 border border-primary-100 rounded-full px-2.5 py-1">
+                      {pdfFontSize}px
+                    </span>
+                  </div>
+                  <input
+                    id="pdf-font-size"
+                    type="range"
+                    min={MIN_PDF_FONT_SIZE}
+                    max={MAX_PDF_FONT_SIZE}
+                    step="1"
+                    value={pdfFontSize}
+                    onChange={(e) =>
+                      setCompanyData((prev) => ({ ...prev, pdf_font_size: Number(e.target.value) }))
+                    }
+                    className="w-full accent-primary-600"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div>
+                      <label htmlFor="pdf-description-font-size" className="text-sm font-bold text-slate-700">
+                        Tamaño de descripción
+                      </label>
+                      <p className="text-xs text-slate-400">Afecta el texto principal de cada ítem</p>
+                    </div>
+                    <span className="text-xs font-bold text-primary-700 bg-primary-50 border border-primary-100 rounded-full px-2.5 py-1">
+                      {pdfDescriptionFontSize}px
+                    </span>
+                  </div>
+                  <input
+                    id="pdf-description-font-size"
+                    type="range"
+                    min={MIN_PDF_DESCRIPTION_FONT_SIZE}
+                    max={MAX_PDF_DESCRIPTION_FONT_SIZE}
+                    step="1"
+                    value={pdfDescriptionFontSize}
+                    onChange={(e) =>
+                      setCompanyData((prev) => ({ ...prev, pdf_description_font_size: Number(e.target.value) }))
+                    }
+                    className="w-full accent-primary-600"
+                  />
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    Vista preliminar de la tabla
+                  </div>
+                  <div className="overflow-hidden rounded-lg border border-slate-200">
+                    <div className="grid grid-cols-[1fr_72px_96px_96px] bg-primary-600 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-white">
+                      <span>Descripción</span>
+                      <span className="text-right">Cant.</span>
+                      <span className="text-right">P. Unitario</span>
+                      <span className="text-right">Total</span>
+                    </div>
+                    <div className="grid grid-cols-[1fr_72px_96px_96px] items-center gap-0 px-3 py-3 text-slate-600" style={{ fontSize: `${pdfFontSize}px` }}>
+                      <span className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
+                        Reparación y mantenimiento general con materiales incluidos
+                      </span>
+                      <span className="text-right font-semibold">2</span>
+                      <span className="text-right font-semibold">$45.000,00</span>
+                      <span className="text-right font-semibold">$90.000,00</span>
+                    </div>
+                    <div className="grid grid-cols-[1fr_72px_96px_96px] items-center bg-slate-50 px-3 py-3 text-slate-600" style={{ fontSize: `${pdfFontSize}px` }}>
+                      <span className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
+                        Mano de obra especializada
+                      </span>
+                      <span className="text-right font-semibold">1</span>
+                      <span className="text-right font-semibold">$30.000,00</span>
+                      <span className="text-right font-semibold">$30.000,00</span>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs text-slate-400">
+                    Si agrandás demasiado la letra, van a entrar menos ítems por página.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Status messages */}
@@ -332,13 +536,13 @@ export default function SettingsModal({ isOpen, onClose }) {
               Error al eliminar el logo.
             </div>
           )}
-          {activeTab === 'company' && companyStatus?.type === 'success' && (
+          {activeTab !== 'logo' && companyStatus?.type === 'success' && (
             <div className="mb-4 p-3 bg-primary-50 text-primary-700 rounded-lg flex items-center gap-2 text-sm font-bold">
               <CheckCircle2 size={16} />
               {companyStatus.message}
             </div>
           )}
-          {activeTab === 'company' && companyStatus?.type === 'error' && (
+          {activeTab !== 'logo' && companyStatus?.type === 'error' && (
             <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded-lg flex items-center gap-2 text-sm font-bold">
               <AlertCircle size={16} />
               {companyStatus.message}
@@ -356,11 +560,11 @@ export default function SettingsModal({ isOpen, onClose }) {
           </button>
           {activeTab === 'logo' ? (
             <button
-              onClick={handleUpload}
-              disabled={!selectedFile || logoLoading}
+              onClick={handleSaveLogo}
+              disabled={logoLoading}
               className="flex-[2] py-2.5 rounded-xl text-white font-bold transition-all text-sm flex items-center justify-center gap-2"
               style={{
-                background: !selectedFile || logoLoading ? 'var(--color-text-muted)' : 'var(--color-brand-blue)'
+                background: logoLoading ? 'var(--color-text-muted)' : 'var(--color-brand-blue)'
               }}
             >
               {logoLoading ? (
@@ -368,13 +572,13 @@ export default function SettingsModal({ isOpen, onClose }) {
               ) : (
                 <>
                   <Upload size={16} />
-                  Guardar Logo
+                  Guardar Logo y Tamaño
                 </>
               )}
             </button>
           ) : (
             <button
-              onClick={handleSaveCompany}
+              onClick={handleSaveActiveSettings}
               disabled={companySaving}
               className="flex-[2] py-2.5 rounded-xl text-white font-bold transition-all text-sm flex items-center justify-center gap-2"
               style={{
@@ -386,7 +590,7 @@ export default function SettingsModal({ isOpen, onClose }) {
               ) : (
                 <>
                   <Save size={16} />
-                  Guardar Empresa
+                  {saveButtonLabel}
                 </>
               )}
             </button>

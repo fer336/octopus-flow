@@ -85,6 +85,9 @@ async def get_company_settings(
         email_contact=current_user.email_contact,
         payment_terms=current_user.payment_terms,
         logo_url=current_user.logo_url,
+        logo_size=current_user.logo_size or 180,
+        pdf_font_size=current_user.pdf_font_size or 13,
+        pdf_description_font_size=current_user.pdf_description_font_size or 14,
     )
 
 
@@ -119,4 +122,7 @@ async def update_company_settings(
         email_contact=current_user.email_contact,
         payment_terms=current_user.payment_terms,
         logo_url=current_user.logo_url,
+        logo_size=current_user.logo_size or 180,
+        pdf_font_size=current_user.pdf_font_size or 13,
+        pdf_description_font_size=current_user.pdf_description_font_size or 14,
     )

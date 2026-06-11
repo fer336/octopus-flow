@@ -185,6 +185,12 @@ def _build_context(budget, client_data=None):
     user = getattr(budget, "user", None)
     company_name = _safe_value(getattr(user, "name", None), "Presupuesto comercial")
     status, status_slug = _status_value(budget)
+    logo_size = getattr(user, "logo_size", None) or 180
+    logo_size = max(80, min(int(logo_size), 320))
+    pdf_font_size = getattr(user, "pdf_font_size", None) or 13
+    pdf_font_size = max(10, min(int(pdf_font_size), 18))
+    pdf_description_font_size = getattr(user, "pdf_description_font_size", None) or 14
+    pdf_description_font_size = max(11, min(int(pdf_description_font_size), 22))
 
     # Payment terms del branding del usuario o default
     user_payment_terms = _safe_value(getattr(user, "payment_terms", None), "-")
@@ -197,6 +203,7 @@ def _build_context(budget, client_data=None):
             "display_name": _company_display_name(user),
             "initials": _company_initials(company_name),
             "logo_data_uri": _resolve_logo_data_uri(budget),
+            "logo_size": logo_size,
             # === Nuevos campos de branding ===
             "business_name": _safe_value(getattr(user, "business_name", None)),
             "tax_id": _safe_value(getattr(user, "tax_id", None)),
@@ -210,6 +217,8 @@ def _build_context(budget, client_data=None):
             "date": _format_date(getattr(budget, "date", None)),
             "validity": _safe_value(getattr(budget, "validity", None), ""),
             "accent_color": getattr(budget, "accent_color", None) or "#2563eb",
+            "font_size": pdf_font_size,
+            "description_font_size": pdf_description_font_size,
             "status": status,
             "status_slug": status_slug,
             "is_manual_total": getattr(budget, "is_manual_total", 0),
