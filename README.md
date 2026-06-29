@@ -1,51 +1,63 @@
 # QuoteFlow
 
-QuoteFlow es una aplicación para gestionar presupuestos comerciales, clientes y generación de PDFs desde una interfaz web moderna. El proyecto combina **FastAPI + SQLAlchemy + PostgreSQL** en backend y **React + Vite + Tailwind CSS** en frontend, con autenticación por email/contraseña y Google OAuth.
+QuoteFlow es un sistema web para administrar clientes, presupuestos comerciales y PDFs de cotización. Incluye una API FastAPI, un frontend React/Vite, autenticación por email/contraseña o Google OAuth, gestión de usuarios, carga de logo empresarial y generación de presupuestos en PDF.
 
-## Stack principal
+## Quick path
 
-- **Frontend:** React 18, Vite, Tailwind CSS, Axios, `@react-oauth/google`
-- **Backend:** FastAPI, SQLAlchemy, Pydantic, python-jose, Passlib
-- **Base de datos:** PostgreSQL
-- **Integraciones:** Google OAuth (popup JS + validación server-side), MinIO para logos/activos
-- **Salida de documentos:** WeasyPrint (HTML → PDF) con fallback legacy en ReportLab
+1. Levantá PostgreSQL o prepará una base remota.
+2. Configurá `backend/.env` y ejecutá la API en `http://localhost:8000`.
+3. Configurá `frontend/.env` y ejecutá la app en `http://localhost:5173`.
+4. Creá al menos un usuario con `backend/manage_users.py`.
+5. Verificá el backend con `curl http://localhost:8000/api/health`.
 
-## Capturas de interfaz
+## Qué tiene el sistema
 
-### Login
+| Área | Incluye |
+|---|---|
+| Presupuestos | Crear, listar, editar, eliminar, cargar ítems y exportar PDF. |
+| Clientes | Alta, listado, edición y eliminación de clientes. |
+| Usuarios | Login, login con Google, administración de usuarios y estado de cuenta. |
+| Empresa | Configuración básica y carga/eliminación/lectura de logo. |
+| PDF | Render principal con HTML/CSS vía WeasyPrint y fallback legacy con ReportLab. |
+| Frontend | App React 18 con Vite, Tailwind CSS, Axios, Google OAuth y tours con `driver.js`. |
+| Deploy | Imágenes Docker para backend, frontend tenant y frontend CMS; compose para Swarm/Traefik. |
 
-![Login de QuoteFlow](docs/images/login.png)
+## Capturas
 
-### Dashboard
+| Pantalla | Imagen |
+|---|---|
+| Login | ![Login de QuoteFlow](docs/images/login.png) |
+| Dashboard | ![Dashboard de QuoteFlow](docs/images/dashboard.png) |
+| Modal de presupuesto | ![Modal de presupuesto en QuoteFlow](docs/images/budget-modal.png) |
+| PDF generado | ![Ejemplo real del PDF de presupuesto en QuoteFlow](docs/images/pdf-presupuesto-ejemplo-real.png) |
 
-![Dashboard de QuoteFlow](docs/images/dashboard.png)
+## Requisitos
 
-### Modal de presupuesto
+| Herramienta | Versión sugerida | Para qué se usa |
+|---|---:|---|
+| Python | 3.11 | Backend FastAPI. |
+| Node.js | 18+ | Frontend Vite. |
+| npm | 9+ | Instalación y scripts frontend. |
+| PostgreSQL | 14+ | Base de datos. |
+| WeasyPrint deps | Según sistema operativo | Render HTML → PDF fuera de Docker. |
 
-![Modal de presupuesto en QuoteFlow](docs/images/budget-modal.png)
+> MinIO aparece como integración para logos/activos, pero no es necesario para el camino básico local si no vas a probar almacenamiento de archivos en entorno aislado.
 
-### PDF de presupuesto real
+## Instalación local
 
-![Ejemplo real del PDF de presupuesto en QuoteFlow](docs/images/pdf-presupuesto-ejemplo-real.png)
+### 1. Base de datos
 
-## Requisitos previos
+Si usás PostgreSQL local, creá la base y el usuario:
 
-### Recomendados
+```sql
+CREATE DATABASE budgetpro_db;
+CREATE USER budgetpro_user WITH PASSWORD 'tu_password';
+GRANT ALL PRIVILEGES ON DATABASE budgetpro_db TO budgetpro_user;
+```
 
-- **Python 3.11** (alineado con `backend/Dockerfile`)
-- **Node.js 18+** (alineado con `frontend/Dockerfile`)
-- **npm 9+**
-- **PostgreSQL 14+** si vas a correr una base local
+Si ya tenés una base remota, podés saltar este paso y apuntar `DATABASE_URL` a esa instancia.
 
-### Opcionales según tu setup
-
-- **PostgreSQL local**: necesario si no vas a usar una base remota existente
-- **MinIO**: solo si necesitás probar subida/lectura de logos de empresa localmente
-- **Dependencias de sistema para WeasyPrint**: necesarias si vas a renderizar PDFs HTML localmente o en contenedor
-
-## Instalación y ejecución local
-
-### 1) Backend
+### 2. Backend
 
 ```bash
 cd backend
@@ -54,28 +66,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Si vas a usar la generación HTML → PDF fuera de Docker, asegurate de tener instaladas también las librerías de sistema que WeasyPrint necesita. En Debian/Ubuntu:
-
-```bash
-sudo apt-get update && sudo apt-get install -y \
-  libcairo2 \
-  libgdk-pixbuf-2.0-0 \
-  libpango-1.0-0 \
-  libpangoft2-1.0-0 \
-  shared-mime-info
-```
-
-Si además vas a levantar **PostgreSQL local**, creá la base y el usuario antes de arrancar la API:
-
-```sql
-CREATE DATABASE budgetpro_db;
-CREATE USER budgetpro_user WITH PASSWORD 'tu_password';
-GRANT ALL PRIVILEGES ON DATABASE budgetpro_db TO budgetpro_user;
-```
-
-> Si ya tenés una base remota disponible, no hace falta PostgreSQL local: apuntá `DATABASE_URL` a esa instancia.
-
-Creá `backend/.env` con valores mínimos como estos:
+Creá `backend/.env`:
 
 ```env
 DATABASE_URL=postgresql://budgetpro_user:tu_password@localhost:5432/budgetpro_db
@@ -87,7 +78,18 @@ CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 DOMAIN=localhost
 ```
 
-Luego levantá la API:
+Si vas a renderizar PDFs con WeasyPrint fuera de Docker, instalá sus dependencias de sistema. En Debian/Ubuntu:
+
+```bash
+sudo apt-get update && sudo apt-get install -y \
+  libcairo2 \
+  libgdk-pixbuf-2.0-0 \
+  libpango-1.0-0 \
+  libpangoft2-1.0-0 \
+  shared-mime-info
+```
+
+Levantá la API:
 
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
@@ -95,17 +97,13 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 Endpoints útiles:
 
-- API: `http://localhost:8000`
-- Healthcheck: `http://localhost:8000/api/health`
-- Swagger UI: `http://localhost:8000/docs`
+| Endpoint | Uso |
+|---|---|
+| `http://localhost:8000` | Raíz de la API. |
+| `http://localhost:8000/api/health` | Healthcheck. |
+| `http://localhost:8000/docs` | Swagger UI. |
 
-### Generación de PDFs
-
-- El endpoint productivo sigue siendo `GET /api/budgets/{id}/pdf` y responde `application/pdf`.
-- El render principal ahora usa template HTML/CSS (`backend/templates/pdf/`) para mayor fidelidad visual.
-- Si WeasyPrint o sus librerías del sistema no están disponibles, el backend mantiene un fallback temporal al generador legacy basado en ReportLab.
-
-### 2) Frontend
+### 3. Frontend
 
 En otra terminal:
 
@@ -121,7 +119,7 @@ VITE_API_URL=http://localhost:8000/api
 VITE_GOOGLE_CLIENT_ID=tu_google_client_id.apps.googleusercontent.com
 ```
 
-Levantá el frontend:
+Levantá la app principal:
 
 ```bash
 npm run dev
@@ -131,7 +129,47 @@ Acceso local:
 
 - App web: `http://localhost:5173`
 
-### 3) Verificación rápida
+También existen scripts de desarrollo desde la raíz:
+
+```bash
+npm run dev:tenant
+npm run dev:cms
+```
+
+| Script | Puerto | Uso |
+|---|---:|---|
+| `npm run dev:tenant` | 5173 | App principal. |
+| `npm run dev:cms` | 5174 | Modo CMS con `VITE_APP_MODE=cms`. |
+
+### 4. Usuario inicial
+
+El backend no autocrea usuarios autorizados. Antes de iniciar sesión, creá un usuario:
+
+```bash
+cd backend
+source venv/bin/activate
+
+# Listar usuarios
+python manage_users.py list
+
+# Crear usuario habilitado para Google login
+python manage_users.py add demo@quoteflow.local "Usuario Demo"
+
+# Crear usuario con contraseña
+python manage_users.py add demo@quoteflow.local "Usuario Demo" "Cambiar123!"
+
+# Asignar contraseña a un usuario existente
+python manage_users.py set-password demo@quoteflow.local "Cambiar123!"
+```
+
+Reglas de login:
+
+| Método | Condición |
+|---|---|
+| Google OAuth | El email de Google debe existir en `users`. |
+| Email/contraseña | El usuario debe tener `hashed_password` generado por `manage_users.py`. |
+
+### 5. Verificación rápida
 
 ```bash
 curl http://localhost:8000/api/health
@@ -143,246 +181,179 @@ Respuesta esperada:
 {"status":"healthy","database":"connected"}
 ```
 
-## Variables de entorno mínimas
+## Variables de entorno
 
 ### Backend
 
 | Variable | Obligatoria | Uso |
 |---|---:|---|
-| `DATABASE_URL` | Sí | Conexión SQLAlchemy a PostgreSQL |
-| `GOOGLE_CLIENT_ID` | Sí si usás Google OAuth | Verifica el ID token recibido desde Google |
-| `SECRET_KEY` | Sí recomendado | Firma de JWT internos del sistema |
-| `API_HOST` | No | Host de bind para Uvicorn |
-| `API_PORT` | No | Puerto de la API |
-| `CORS_ORIGINS` | No/documentativa hoy | Lista esperada de orígenes permitidos |
-| `DOMAIN` | No | Dominio de referencia para despliegue |
+| `DATABASE_URL` | Sí | Conexión SQLAlchemy a PostgreSQL. |
+| `GOOGLE_CLIENT_ID` | Sí si usás Google OAuth | Valida el ID token recibido desde Google. |
+| `SECRET_KEY` | Sí recomendado | Firma los JWT internos. |
+| `API_HOST` | No | Host de bind para Uvicorn. |
+| `API_PORT` | No | Puerto de la API. |
+| `CORS_ORIGINS` | Parcial | Orígenes esperados para CORS. |
+| `DOMAIN` | No | Dominio de referencia para despliegue. |
 
-> **Importante:** hoy el backend permite `localhost/127.0.0.1` por regex y además tiene orígenes productivos hardcodeados en `backend/main.py`. O sea: `CORS_ORIGINS` está documentada, pero NO gobierna el comportamiento actual por sí sola.
+> Importante: hoy el backend permite `localhost/127.0.0.1` por regex y mantiene orígenes productivos en `backend/main.py`. `CORS_ORIGINS` está documentada, pero no gobierna todo el comportamiento por sí sola.
 
 ### Frontend
 
 | Variable | Obligatoria | Uso |
 |---|---:|---|
-| `VITE_API_URL` | Sí | Base URL del backend |
-| `VITE_GOOGLE_CLIENT_ID` | Sí si usás Google OAuth | Client ID inyectado en `GoogleOAuthProvider` |
+| `VITE_API_URL` | Sí | Base URL del backend. |
+| `VITE_GOOGLE_CLIENT_ID` | Sí si usás Google OAuth | Client ID usado por `GoogleOAuthProvider`. |
 
 ## Google OAuth
 
-### Flujo real actual
-
-El login con Google hoy funciona así:
+El flujo actual usa popup JavaScript, no redirect URI:
 
 1. El frontend monta `GoogleOAuthProvider` con `VITE_GOOGLE_CLIENT_ID`.
-2. En la pantalla de login se renderiza el componente `GoogleLogin` de `@react-oauth/google`.
-3. Google abre el **popup JS** y devuelve un **ID token** (`credentialResponse.credential`).
-4. El frontend hace `POST /api/auth/google` enviando `{ "token": "<google-id-token>" }`.
-5. El backend valida el token contra `GOOGLE_CLIENT_ID`, busca el usuario por email y devuelve un **JWT interno** de QuoteFlow.
+2. `GoogleLogin` abre el popup de Google.
+3. Google devuelve un ID token en `credentialResponse.credential`.
+4. El frontend envía `POST /api/auth/google` con `{ "token": "<google-id-token>" }`.
+5. El backend valida el token contra `GOOGLE_CLIENT_ID` y devuelve un JWT interno.
 
-### Configuración en Google Cloud Console
-
-Para el flujo actual **NO necesitás redirect URI**. Lo que sí necesitás es configurar correctamente **Authorized JavaScript origins** para cada origen desde el que se abre el popup.
-
-Ejemplos típicos:
+En Google Cloud Console configurá **Authorized JavaScript origins** para cada origen real:
 
 - `http://localhost:5173`
 - `http://localhost:3000`
 - `https://sistema.qeva.xyz`
+- Los dominios productivos que uses para tenant/CMS.
 
-### ¿Cuándo haría falta un Redirect URI?
+Solo necesitás redirect URI si en el futuro migrás a un flujo redirect-based.
 
-Solo si en el futuro cambian el UX actual y migran a un flujo **redirect-based** en vez del popup JavaScript actual. Mientras sigan usando `GoogleLogin` en frontend y canje de token vía `POST /api/auth/google`, el punto crítico son los **Authorized JavaScript origins**.
+## PDF de presupuestos
 
-## Usuario inicial / demo
+| Punto | Estado actual |
+|---|---|
+| Endpoint | `GET /api/budgets/{id}/pdf`. |
+| Content-Type | `application/pdf`. |
+| Render principal | Templates HTML/CSS en `backend/templates/pdf/`. |
+| Fallback | ReportLab legacy si WeasyPrint o sus librerías no están disponibles. |
 
-El backend **no autocrea usuarios autorizados**. Para entrar, primero tenés que registrar el email en la tabla `users`.
+## Base de datos y migraciones
 
-### Opción recomendada: script existente
-
-Desde `backend/` con el virtualenv activo:
-
-```bash
-# Listar usuarios
-python manage_users.py list
-
-# Crear usuario habilitado para Google login
-python manage_users.py add demo@quoteflow.local "Usuario Demo"
-
-# Crear usuario con contraseña para login tradicional
-python manage_users.py add demo@quoteflow.local "Usuario Demo" "Cambiar123!"
-
-# O asignar contraseña a un usuario ya existente
-python manage_users.py set-password demo@quoteflow.local "Cambiar123!"
-```
-
-### Cómo iniciar sesión después
-
-- **Google OAuth:** el email de la cuenta Google debe coincidir con un usuario previamente dado de alta.
-- **Email/contraseña:** el usuario debe tener `hashed_password` cargado mediante `manage_users.py`.
-
-### Alternativa manual segura
-
-Si no querés usar el script, la alternativa segura es insertar el usuario directamente en PostgreSQL respetando al menos:
-
-- `email` único
-- `is_active = true`
-- `hashed_password` solo si realmente vas a usar login por contraseña
-
-No se recomienda editar registros “a mano” sin entender esos campos, porque Google login depende de encontrar el usuario por email y el login tradicional depende del hash bcrypt.
-
-## PostgreSQL y migraciones
-
-### Estado actual
+Estado actual:
 
 - El backend ejecuta `Base.metadata.create_all(bind=engine)` al arrancar.
-- Eso significa que **las tablas se crean automáticamente si no existen**.
-- Hoy **no hay baseline de Alembic versionado en el repo**, aunque la dependencia sí está instalada.
+- Las tablas se crean automáticamente si no existen.
+- Alembic está presente, pero no hay una baseline versionada consolidada en el repo.
 
-### Recomendación próxima
-
-Conviene crear una **baseline Alembic** y pasar a migraciones explícitas antes de seguir evolucionando el esquema.
-
-### Runbook corto sugerido (sin implementarlo ahora)
+Próximo paso recomendado:
 
 1. Congelar el esquema actual como baseline.
-2. Inicializar Alembic y apuntarlo a `DATABASE_URL`.
+2. Inicializar Alembic contra `DATABASE_URL`.
 3. Generar una revisión inicial equivalente al esquema vivo.
 4. Validar esa baseline en una base vacía.
-5. Reemplazar gradualmente `create_all` por migraciones controladas.
+5. Reemplazar gradualmente `create_all` por migraciones explícitas.
 
-Hasta que eso exista, cualquier cambio de esquema debe hacerse con MUCHO cuidado porque el arranque automático no reemplaza un historial de migraciones serio.
+Hasta que eso exista, cualquier cambio de esquema debe hacerse con cuidado: `create_all` no reemplaza un historial serio de migraciones.
 
-## Deploy de imágenes Docker
+## Deploy
 
-### Script local rápido
+### Docker Compose para Swarm/Traefik
 
-Se agregó `scripts/deploy-images.sh` para construir y subir backend + frontend en una sola corrida.
+El archivo `docker-compose.yml` está orientado a producción con Portainer + Swarm + Traefik.
 
-> Ojo: el script versionado del repo es `scripts/deploy-images.sh`. En la raíz no existe `./deploy-images.sh`, salvo que vos te hayas creado un wrapper local.
+Incluye:
+
+| Servicio | Imagen |
+|---|---|
+| `backend` | `ghcr.io/fer336/quoteflow/backend:latest` |
+| `frontend` | `ghcr.io/fer336/quoteflow/frontend:latest` |
+| `frontend-cms` | `ghcr.io/fer336/quoteflow/frontend-cms:latest` |
+
+Requisitos operativos:
+
+- Red externa `network_public`.
+- Secreto externo `budgetpro_backend_env_v2`.
+- Traefik con resolver `letsencryptresolver`.
+
+### Build y publicación de imágenes
+
+Script local:
 
 ```bash
 chmod +x scripts/deploy-images.sh
-DOCKER_USERNAME=ferc33 \
-./scripts/deploy-images.sh --tag v2026-03-28-2231
+DOCKER_USERNAME=ferc33 ./scripts/deploy-images.sh --tag v2026-03-28-2231
 ```
 
-Flags soportados:
+Flags:
 
-- `--tag <tag>`: cambia el tag de ambas imágenes
-- `--no-cache`: fuerza build sin cache
+| Flag | Uso |
+|---|---|
+| `--tag <tag>` | Cambia el tag de las imágenes. |
+| `--no-cache` | Fuerza build sin cache. |
 
 Variables relevantes:
 
-- `DOCKER_USERNAME` o `DOCKERHUB_USERNAME`: usuario/org de Docker Hub
-- `IMAGE_TAG`: opcional, default `v2026-03-28-2231`
-- `FRONTEND_API_URL` o `VITE_API_URL`: default `https://sistema.qeva.xyz/api`
-- `FRONTEND_GOOGLE_CLIENT_ID` o `VITE_GOOGLE_CLIENT_ID`: si no están definidas en la shell, el script intenta leer `VITE_GOOGLE_CLIENT_ID` desde `.env` y luego desde `frontend/.env`; si tampoco existe, recién ahí falla con error claro
+| Variable | Uso |
+|---|---|
+| `DOCKER_USERNAME` / `DOCKERHUB_USERNAME` | Usuario u organización de Docker Hub. |
+| `IMAGE_TAG` | Tag por defecto si no se pasa `--tag`. |
+| `FRONTEND_API_URL` / `VITE_API_URL` | URL de API para build frontend. |
+| `FRONTEND_GOOGLE_CLIENT_ID` / `VITE_GOOGLE_CLIENT_ID` | Client ID de Google para build frontend. |
 
-Ejemplos válidos:
-
-```bash
-./scripts/deploy-images.sh --tag v2026-03-28-2231
-
-VITE_GOOGLE_CLIENT_ID=tu_google_client_id.apps.googleusercontent.com \
-./scripts/deploy-images.sh --tag v2026-03-28-2231
-```
-
-> Antes de correrlo, asegurate de estar autenticado en Docker Hub con `docker login`.
-
-### GitHub Actions manual
-
-También se agregó `.github/workflows/deploy-images.yml` con `workflow_dispatch` para correr el deploy manualmente desde la pestaña **Actions** de GitHub.
-
-Secrets requeridos del repo:
-
-- `DOCKERHUB_USERNAME`
-- `DOCKERHUB_TOKEN`
-- `GOOGLE_CLIENT_ID` (opcional si lo vas a pasar como input manual)
-
-Inputs disponibles al disparar el workflow:
-
-- `tag`
-- `no_cache`
-- `api_url`
-- `google_client_id`
-
-Si `google_client_id` viene vacío, el workflow intenta usar `secrets.GOOGLE_CLIENT_ID`.
-
-Recomendación práctica: publicá siempre las imágenes con un tag versionado (por ejemplo `v2026-03-28-2231`) y, si querés un puntero estable para consumo rápido, publicá también `latest`.
+También existe `.github/workflows/deploy-images.yml` con `workflow_dispatch` para publicar imágenes desde GitHub Actions.
 
 ## Troubleshooting
 
-### Puerto ocupado
+| Problema | Qué revisar |
+|---|---|
+| Puerto ocupado | Verificá `8000`, `5173` y `5174`; ajustá URLs si cambiás puertos. |
+| CORS local | Usá `localhost` o `127.0.0.1`; reiniciá backend después de cambios. |
+| Google origen no autorizado | El origin debe coincidir exacto en Google Cloud Console. |
+| Google login no encuentra usuario | El email debe existir previamente en `users`. |
+| PDF falla localmente | Instalá dependencias de WeasyPrint o usá el fallback temporal. |
+| Warning de collation PostgreSQL | Revisá upgrades/restores del sistema y planificá refresh/reindex si aplica. |
 
-- Backend: verificá si algo ya usa `8000`
-- Frontend: verificá si Vite cambió de `5173` a otro puerto
-- Si cambiás puertos, actualizá `VITE_API_URL` y, si corresponde, los orígenes de Google
+## Checklist de instalación
 
-### Error de CORS en local
-
-- El backend actual acepta `localhost` y `127.0.0.1` por regex
-- Si abrís el frontend desde otro hostname o puerto no esperado, vas a pegar contra CORS
-- Reiniciá el backend después de cambios de entorno
-
-### Error de Google: origen no autorizado
-
-- Revisá los **Authorized JavaScript origins** del OAuth Client en Google Cloud Console
-- El origen debe coincidir EXACTO con el que usás en el navegador (`http`/`https`, host y puerto)
-- Asegurate de usar el mismo client ID en `GOOGLE_CLIENT_ID` y `VITE_GOOGLE_CLIENT_ID`
-
-### Warning de collation en PostgreSQL
-
-- Si aparece un warning de versión de collation/locale, normalmente viene del cluster de PostgreSQL o del sistema operativo, no de QuoteFlow
-- No lo ignores si hubo upgrade del SO o restore entre entornos distintos
-- Validalo con el equipo de infraestructura y planificá refresh de collation/reindex si corresponde
-
-
-
-- nombre de base o usuario PostgreSQL heredado
-- buckets/objetos de logos
-- nombres de imágenes Docker
-- referencias internas `budgetpro_*`
-
+- [ ] PostgreSQL está disponible y `DATABASE_URL` apunta al entorno correcto.
+- [ ] `backend/.env` existe y tiene `SECRET_KEY`.
+- [ ] `frontend/.env` existe y apunta a la API local.
+- [ ] Google OAuth tiene los Authorized JavaScript origins correctos.
+- [ ] Hay al menos un usuario activo en la tabla `users`.
+- [ ] `curl http://localhost:8000/api/health` responde `healthy`.
+- [ ] El frontend abre en `http://localhost:5173`.
+- [ ] La generación de PDF fue probada si el entorno la requiere.
 
 ## Recomendaciones operativas
 
-- Documentar un `.env.example` para backend y frontend
-- Externalizar CORS real a configuración en vez de hardcodearlo en `backend/main.py`
-- Crear baseline Alembic antes de tocar el esquema de datos otra vez
-- Definir un flujo estándar de demo user para onboarding interno
+- Crear `backend/.env.example` y `frontend/.env.example` para reducir errores de onboarding.
+- Externalizar completamente CORS desde `backend/main.py`.
+- Crear baseline Alembic antes del próximo cambio de esquema.
+- Definir un usuario demo estándar para pruebas internas.
+- Mantener tags versionados para imágenes Docker; usar `latest` solo como puntero conveniente.
 
-# Apoyo y Donaciones
+## Apoyo y donaciones
 
 ![Apoyo](https://img.shields.io/badge/Apoyo-Activo-2ea44f?style=for-the-badge)
 ![Donaciones](https://img.shields.io/badge/Donaciones-Habilitadas-0a7ea4?style=for-the-badge)
 ![Mantenimiento](https://img.shields.io/badge/Mantenimiento-Continuo-f59e0b?style=for-the-badge)
 
-Gracias por apoyar este proyecto. Tu aporte permite sostener el mantenimiento, mejorar la calidad del código y dedicar tiempo a nuevas funcionalidades.
+Gracias por apoyar este proyecto. Tu aporte permite sostener mantenimiento, infraestructura y nuevas funcionalidades.
 
-## Donar con QR
-
-Escaneá el siguiente código QR para realizar una donación:
+### Donar con QR
 
 <img src="https://raw.githubusercontent.com/fer336/donation-assets/main/assets/qr-donation.jpg" alt="QR de donación" width="260" />
 
-## Donar con PayPal
+### Donar con PayPal
 
 Podés donar directamente a través de PayPal usando este correo:
 
 `casserafernando@gmail.com`
 
-- [Donar por PayPal (correo)](mailto:casserafernando@gmail.com)
+- [Donar por PayPal](mailto:casserafernando@gmail.com)
 
-## Cómo ayudar sin donar
+### Cómo ayudar sin donar
 
-- Dejá una estrella al repositorio para aumentar su visibilidad.
-- Reportá errores o mejoras desde la sección de issues.
+- Dejá una estrella al repositorio.
+- Reportá errores o mejoras en issues.
 - Enviá pull requests con correcciones o nuevas ideas.
-- Difundí el proyecto en redes, comunidades o entre colegas.
+- Difundí el proyecto en comunidades o redes.
 
-## Transparencia
+## Contacto
 
-Las donaciones se destinan a cubrir infraestructura, tiempo de mantenimiento y mejoras continuas del proyecto.
-
-## Contacto y soporte
-
-Si necesitás ayuda o querés colaborar, abrí un issue en este repositorio o contactame por correo.
+Si necesitás ayuda o querés colaborar, abrí un issue en este repositorio o escribí a `casserafernando@gmail.com`.
