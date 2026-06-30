@@ -27,9 +27,10 @@ OctopusFlow es un sistema web para administrar clientes, presupuestos comerciale
 | Pantalla | Imagen |
 |---|---|
 | Login | ![Login de OctopusFlow](docs/images/login.png) |
-| Dashboard | ![Dashboard de OctopusFlow](docs/images/dashboard.png) |
-| Modal de presupuesto | ![Modal de presupuesto en OctopusFlow](docs/images/budget-modal.png) |
-| PDF generado | ![Ejemplo real del PDF de presupuesto en OctopusFlow](docs/images/pdf-presupuesto-ejemplo-real.png) |
+| Tabla de presupuestos | ![Tabla de presupuestos de OctopusFlow](docs/images/tabla.png) |
+| Nuevo presupuesto | ![Formulario de nuevo presupuesto en OctopusFlow](docs/images/nuevo-presupuesto.png) |
+| Editar presupuesto | ![Formulario de edición de presupuesto en OctopusFlow](docs/images/editar-presupuesto.png) |
+| Presupuesto generado | ![Presupuesto generado en OctopusFlow](docs/images/presupuesto.png) |
 
 ## Requisitos
 
