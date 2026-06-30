@@ -1,6 +1,6 @@
-# QuoteFlow
+# OctopusFlow
 
-QuoteFlow es un sistema web para administrar clientes, presupuestos comerciales y PDFs de cotización. Incluye una API FastAPI, un frontend React/Vite, autenticación por email/contraseña o Google OAuth, gestión de usuarios, carga de logo empresarial y generación de presupuestos en PDF.
+OctopusFlow es un sistema web para administrar clientes, presupuestos comerciales y PDFs de cotización. Incluye una API FastAPI, un frontend React/Vite, autenticación por email/contraseña o Google OAuth, gestión de usuarios, carga de logo empresarial y generación de presupuestos en PDF.
 
 ## Quick path
 
@@ -26,10 +26,10 @@ QuoteFlow es un sistema web para administrar clientes, presupuestos comerciales 
 
 | Pantalla | Imagen |
 |---|---|
-| Login | ![Login de QuoteFlow](docs/images/login.png) |
-| Dashboard | ![Dashboard de QuoteFlow](docs/images/dashboard.png) |
-| Modal de presupuesto | ![Modal de presupuesto en QuoteFlow](docs/images/budget-modal.png) |
-| PDF generado | ![Ejemplo real del PDF de presupuesto en QuoteFlow](docs/images/pdf-presupuesto-ejemplo-real.png) |
+| Login | ![Login de OctopusFlow](docs/images/login.png) |
+| Dashboard | ![Dashboard de OctopusFlow](docs/images/dashboard.png) |
+| Modal de presupuesto | ![Modal de presupuesto en OctopusFlow](docs/images/budget-modal.png) |
+| PDF generado | ![Ejemplo real del PDF de presupuesto en OctopusFlow](docs/images/pdf-presupuesto-ejemplo-real.png) |
 
 ## Requisitos
 
@@ -50,9 +50,9 @@ QuoteFlow es un sistema web para administrar clientes, presupuestos comerciales 
 Si usás PostgreSQL local, creá la base y el usuario:
 
 ```sql
-CREATE DATABASE budgetpro_db;
-CREATE USER budgetpro_user WITH PASSWORD 'tu_password';
-GRANT ALL PRIVILEGES ON DATABASE budgetpro_db TO budgetpro_user;
+CREATE DATABASE octopusflow_db;
+CREATE USER octopusflow_user WITH PASSWORD 'tu_password';
+GRANT ALL PRIVILEGES ON DATABASE octopusflow_db TO octopusflow_user;
 ```
 
 Si ya tenés una base remota, podés saltar este paso y apuntar `DATABASE_URL` a esa instancia.
@@ -69,7 +69,7 @@ pip install -r requirements.txt
 Creá `backend/.env`:
 
 ```env
-DATABASE_URL=postgresql://budgetpro_user:tu_password@localhost:5432/budgetpro_db
+DATABASE_URL=postgresql://octopusflow_user:tu_password@localhost:5432/octopusflow_db
 GOOGLE_CLIENT_ID=tu_google_client_id.apps.googleusercontent.com
 SECRET_KEY=generar_una_clave_larga_y_unica
 API_HOST=0.0.0.0
@@ -153,13 +153,13 @@ source venv/bin/activate
 python manage_users.py list
 
 # Crear usuario habilitado para Google login
-python manage_users.py add demo@quoteflow.local "Usuario Demo"
+python manage_users.py add demo@octopusflow.local "Usuario Demo"
 
 # Crear usuario con contraseña
-python manage_users.py add demo@quoteflow.local "Usuario Demo" "Cambiar123!"
+python manage_users.py add demo@octopusflow.local "Usuario Demo" "Cambiar123!"
 
 # Asignar contraseña a un usuario existente
-python manage_users.py set-password demo@quoteflow.local "Cambiar123!"
+python manage_users.py set-password demo@octopusflow.local "Cambiar123!"
 ```
 
 Reglas de login:
@@ -218,7 +218,7 @@ En Google Cloud Console configurá **Authorized JavaScript origins** para cada o
 
 - `http://localhost:5173`
 - `http://localhost:3000`
-- `https://sistema.qeva.xyz`
+- `https://app.octopusflow.example`
 - Los dominios productivos que uses para tenant/CMS.
 
 Solo necesitás redirect URI si en el futuro migrás a un flujo redirect-based.
@@ -260,14 +260,14 @@ Incluye:
 
 | Servicio | Imagen |
 |---|---|
-| `backend` | `ghcr.io/fer336/quoteflow/backend:latest` |
-| `frontend` | `ghcr.io/fer336/quoteflow/frontend:latest` |
-| `frontend-cms` | `ghcr.io/fer336/quoteflow/frontend-cms:latest` |
+| `backend` | `ghcr.io/fer336/octopus-flow/backend:latest` |
+| `frontend` | `ghcr.io/fer336/octopus-flow/frontend:latest` |
+| `frontend-cms` | `ghcr.io/fer336/octopus-flow/frontend-cms:latest` |
 
 Requisitos operativos:
 
 - Red externa `network_public`.
-- Secreto externo `budgetpro_backend_env_v2`.
+- Secreto externo `octopusflow_backend_env_v2`.
 - Traefik con resolver `letsencryptresolver`.
 
 ### Build y publicación de imágenes
