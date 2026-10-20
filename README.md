@@ -268,7 +268,7 @@ Incluye:
 Requisitos operativos:
 
 - Red externa `network_public`.
-- Secreto externo `budgetpro_backend_env` (independiente del stack de `marinkovic`, que usa `budgetpro_backend_env_v2`).
+- Secreto externo `budgetpro_backend_env_v3` (independiente del stack de `marinkovic`, que usa `budgetpro_backend_env_v2`).
 - Traefik con resolver `letsencryptresolver`.
 - Variable obligatoria `OCTOPUSFLOW_VERSION` con el tag completo de release, incluido el prefijo `v` (por ejemplo, `v1.5.5`). No se admite `latest` en producción.
 
@@ -277,7 +277,7 @@ Requisitos operativos:
 Configurá el stack de producción con estos valores:
 
 - Repository URL: `https://github.com/fer336/octopus-flow.git`.
-- Compose path: `docker-compose.yml` (producción, secreto `budgetpro_backend_env`) o `docker-compose.portainer.yml` (testing, secreto `quoteflow_backend_env`).
+- Compose path: `docker-compose.yml` (producción, secreto `budgetpro_backend_env_v3`) o `docker-compose.portainer.yml` (testing, secreto `quoteflow_backend_env`).
 - Environment variable: `OCTOPUSFLOW_VERSION=vX.Y.Z`.
 - Webhook: guardalo en GitHub Actions como el secreto `PORTAINER_WEBHOOK_URL`.
 

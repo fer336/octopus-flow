@@ -4,7 +4,7 @@ version: "3.8"
 # OctopusFlow - Docker Compose (Producción)
 # ==============================================================================
 # Usar con Portainer + Swarm + Traefik
-# Requiere: secreto budgetpro_backend_env pre-configurado en el manager
+# Requiere: secreto budgetpro_backend_env_v3 pre-configurado en el manager
 
 services:
   backend:
@@ -13,7 +13,7 @@ services:
       - network_public
       - budgetpro-internal
     secrets:
-      - source: budgetpro_backend_env
+      - source: budgetpro_backend_env_v3
         target: /run/secrets/backend.env
     environment:
       - DATABASE_URL_FILE=/run/secrets/backend.env
@@ -144,5 +144,5 @@ volumes:
     driver: local
 
 secrets:
-  budgetpro_backend_env:
+  budgetpro_backend_env_v3:
     external: true
