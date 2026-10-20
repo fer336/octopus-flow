@@ -10,6 +10,34 @@ import {
 import { clientService } from '../services/api';
 import BudgetItemEditor from './BudgetItemEditor';
 
+const COLORS = [
+  { name: 'Azul', value: '#2563eb' },
+  { name: 'Rojo', value: '#dc2626' },
+  { name: 'Verde', value: '#16a34a' },
+  { name: 'Amarillo', value: '#ca8a04' },
+  { name: 'Naranja', value: '#ea580c' },
+  { name: 'Violeta', value: '#9333ea' },
+  { name: 'Negro', value: '#1e293b' },
+];
+
+const INPUT_CLS =
+  'w-full min-h-[44px] px-3.5 rounded-xl border border-[#cce6f0] bg-white font-semibold text-slate-800 placeholder:font-normal placeholder:text-slate-400 outline-none transition-all focus:border-[#04b2d9] focus:ring-2 focus:ring-[#04b2d9]/30';
+const LABEL_CLS = 'block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5';
+
+function Section({ step, title, children, ...rest }) {
+  return (
+    <section className="bg-white border border-[#cce6f0] rounded-2xl p-5" {...rest}>
+      <div className="flex items-center gap-2.5 mb-4">
+        <span className="w-6 h-6 rounded-full bg-[#025373] text-white text-xs font-extrabold flex items-center justify-center">
+          {step}
+        </span>
+        <h3 className="text-base font-extrabold text-[#081b26]">{title}</h3>
+      </div>
+      {children}
+    </section>
+  );
+}
+
 const ARS = (n) =>
   new Intl.NumberFormat('es-AR', {
     style: 'currency',
@@ -142,253 +170,285 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
 
   if (!isOpen) return null;
 
+  const includedCount = items.filter((i) => !i.is_excluded).length;
+  const excludedCount = items.length - includedCount;
+  const colorName = COLORS.find((c) => c.value === accentColor)?.name ?? 'Personalizado';
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
       <div className="flex min-h-full items-stretch justify-center p-0 md:items-center md:p-6">
         <form
           onSubmit={handleSubmit}
           data-tour="budget-modal"
-          className="bg-white w-full min-h-screen shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col md:min-h-0 md:max-w-4xl md:my-auto md:max-h-[calc(100dvh-3rem)] md:rounded-2xl"
+          className="bg-[#f5faff] w-full min-h-screen shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col md:min-h-0 md:max-w-6xl md:my-auto md:max-h-[calc(100dvh-3rem)] md:rounded-2xl"
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
-            <div className="flex items-center gap-2">
-              <Edit3 className="text-primary-600" size={20} />
-              <h2 className="text-lg font-bold text-slate-800">
-                {initialData ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
+          <div className="px-6 py-4 border-b border-[#cce6f0] flex items-center justify-between bg-white shrink-0">
+            <div className="flex items-center gap-2.5">
+              <Edit3 className="text-[#025373]" size={20} />
+              <h2 className="text-lg font-extrabold text-[#081b26]">
+                {initialData ? 'Editar presupuesto' : 'Nuevo presupuesto'}
               </h2>
             </div>
-            <button onClick={onClose} type="button" className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
+            <button
+              onClick={onClose}
+              type="button"
+              aria-label="Cerrar"
+              className="w-10 h-10 flex items-center justify-center hover:bg-slate-100 rounded-full transition-colors text-slate-500"
+            >
               <X size={20} />
             </button>
           </div>
 
-          {/* Scrollable Content */}
+          {/* Scrollable content: steps + summary */}
           <div className="p-6 overflow-y-auto flex-1 min-h-0">
-            {/* Top Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="md:col-span-1 relative" data-tour="budget-form-client">
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Cliente</label>
-                <div className="relative">
-                  <input
-                    required
-                    type="text"
-                    placeholder="Buscar o crear..."
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                    value={client}
-                    onChange={(e) => {
-                      setClient(e.target.value);
-                      setShowClientDropdown(true);
-                    }}
-                    onFocus={() => setShowClientDropdown(true)}
-                    onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                    {showClientDropdown ? <Search size={14} /> : <User size={14} />}
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
+              <div className="flex flex-col gap-5 min-w-0">
+                {/* 1 · Cliente */}
+                <Section step={1} title="Cliente" data-tour="budget-form-client">
+                  <label htmlFor="budget-client" className={LABEL_CLS}>Buscar o crear cliente</label>
+                  <div className="relative">
+                    <input
+                      id="budget-client"
+                      required
+                      type="text"
+                      placeholder="Buscar o crear..."
+                      className={`${INPUT_CLS} pr-10`}
+                      value={client}
+                      onChange={(e) => {
+                        setClient(e.target.value);
+                        setShowClientDropdown(true);
+                      }}
+                      onFocus={() => setShowClientDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
+                    />
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      {showClientDropdown ? <Search size={16} /> : <User size={16} />}
+                    </div>
 
-                {showClientDropdown && client.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-20 max-h-48 overflow-y-auto">
-                    {filteredClients.length > 0 ? (
-                      filteredClients.map((c) => (
-                        <div
-                          key={c.id}
-                          className="px-4 py-2 hover:bg-primary-50 cursor-pointer text-sm text-slate-700 flex items-center gap-2"
-                          onClick={() => {
-                            setClient(c.name);
-                            setShowClientDropdown(false);
-                          }}
-                        >
-                          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                            {c.name.charAt(0).toUpperCase()}
+                    {showClientDropdown && client.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#cce6f0] rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
+                        {filteredClients.length > 0 ? (
+                          filteredClients.map((c) => (
+                            <div
+                              key={c.id}
+                              className="px-4 py-2.5 hover:bg-[#e8f6fc] cursor-pointer text-sm text-slate-700 flex items-center gap-2"
+                              onClick={() => {
+                                setClient(c.name);
+                                setShowClientDropdown(false);
+                              }}
+                            >
+                              <div className="w-6 h-6 rounded-full bg-[#e8f6fc] flex items-center justify-center text-[10px] font-bold text-[#025373]">
+                                {c.name.charAt(0).toUpperCase()}
+                              </div>
+                              {c.name}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-4 py-2.5 text-xs text-slate-500 italic">
+                            Presiona enter para usar "{client}"
                           </div>
-                          {c.name}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-4 py-2 text-xs text-slate-400 italic">
-                        Presiona enter para usar "{client}"
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Fecha</label>
-                <input
-                  type="date"
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Validez</label>
-                  <button
-                    type="button"
-                    onClick={() => setValidityEnabled(v => !v)}
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-all ${validityEnabled ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'}`}
-                  >
-                    {validityEnabled ? 'Activada' : 'Sin validez'}
-                  </button>
-                </div>
-                {validityEnabled ? (
-                  <>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                      value={validity}
-                      onChange={(e) => setValidity(e.target.value)}
-                      placeholder="Ej: 15 días"
-                    />
-                    <div className="flex gap-1.5 mt-1.5">
-                      {['7 días', '15 días', '30 días'].map(opt => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setValidity(opt)}
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-semibold transition-all ${validity === opt ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                        >
-                          {opt}
-                        </button>
-                      ))}
+                </Section>
+
+                {/* 2 · Detalles */}
+                <Section step={2} title="Detalles del documento">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="budget-date" className={LABEL_CLS}>Fecha</label>
+                      <input
+                        id="budget-date"
+                        type="date"
+                        className={INPUT_CLS}
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                      />
                     </div>
-                  </>
-                ) : (
-                  <div className="px-4 py-2 bg-slate-50 border border-dashed border-slate-200 rounded-lg text-xs text-slate-400 italic">
-                    No se mostrará validez en el presupuesto
-                  </div>
-                )}
-              </div>
 
-              <div className="md:col-span-3">
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Color del presupuesto</label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {[
-                    { name: 'Azul',    value: '#2563eb' },
-                    { name: 'Rojo',    value: '#dc2626' },
-                    { name: 'Verde',   value: '#16a34a' },
-                    { name: 'Amarillo',value: '#ca8a04' },
-                    { name: 'Naranja', value: '#ea580c' },
-                    { name: 'Violeta', value: '#9333ea' },
-                    { name: 'Negro',   value: '#1e293b' },
-                  ].map(({ name, value }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      title={name}
-                      onClick={() => setAccentColor(value)}
-                      className="w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center shrink-0"
-                      style={{
-                        backgroundColor: value,
-                        borderColor: accentColor === value ? '#fff' : 'transparent',
-                        outline: accentColor === value ? `3px solid ${value}` : 'none',
-                        outlineOffset: '1px',
-                      }}
-                    >
-                      {accentColor === value && (
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label htmlFor="budget-validity" className="text-xs font-bold text-slate-500 uppercase tracking-wide">Validez</label>
+                        <button
+                          type="button"
+                          onClick={() => setValidityEnabled((v) => !v)}
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-all ${validityEnabled ? 'bg-[#e8f6fc] text-[#025373]' : 'bg-slate-100 text-slate-500'}`}
+                        >
+                          {validityEnabled ? 'Activada' : 'Sin validez'}
+                        </button>
+                      </div>
+                      {validityEnabled ? (
+                        <>
+                          <input
+                            id="budget-validity"
+                            type="text"
+                            className={INPUT_CLS}
+                            value={validity}
+                            onChange={(e) => setValidity(e.target.value)}
+                            placeholder="Ej: 15 días"
+                          />
+                          <div className="flex gap-1.5 mt-2">
+                            {['7 días', '15 días', '30 días'].map((opt) => (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => setValidity(opt)}
+                                className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${validity === opt ? 'bg-[#e8f6fc] text-[#025373]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="px-3.5 py-3 border border-dashed border-slate-300 rounded-xl text-xs text-slate-500 italic">
+                          No se mostrará validez en el presupuesto
+                        </div>
                       )}
-                    </button>
-                  ))}
-                  <span className="text-xs text-slate-400 ml-1" style={{ color: accentColor }}>■ {['Azul','Rojo','Verde','Amarillo','Naranja','Violeta','Negro'][['#2563eb','#dc2626','#16a34a','#ca8a04','#ea580c','#9333ea','#1e293b'].indexOf(accentColor)] ?? 'Personalizado'}</span>
-                </div>
+                    </div>
+
+                    {initialData && (
+                      <div>
+                        <label htmlFor="budget-status" className={LABEL_CLS}>Estado</label>
+                        <select
+                          id="budget-status"
+                          className={`${INPUT_CLS} appearance-none`}
+                          value={status}
+                          onChange={(e) => setStatus(e.target.value)}
+                        >
+                          <option value="Pendiente">Pendiente</option>
+                          <option value="Aceptado">Aceptado</option>
+                          <option value="Rechazado">Rechazado</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="sm:col-span-2">
+                      <div className={LABEL_CLS}>Color del documento</div>
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        {COLORS.map(({ name, value }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            title={name}
+                            aria-label={name}
+                            aria-pressed={accentColor === value}
+                            onClick={() => setAccentColor(value)}
+                            className="w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center shrink-0"
+                            style={{
+                              backgroundColor: value,
+                              borderColor: accentColor === value ? '#fff' : 'transparent',
+                              outline: accentColor === value ? `3px solid ${value}` : 'none',
+                              outlineOffset: '1px',
+                            }}
+                          >
+                            {accentColor === value && (
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                        <span className="text-xs font-semibold text-slate-600 ml-1">{colorName}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Section>
+
+                {/* 3 · Trabajos */}
+                <Section step={3} title="Trabajos a presupuestar">
+                  <BudgetItemEditor
+                    items={items}
+                    onItemsChange={setItems}
+                    isManualMode={isManualMode}
+                  />
+                </Section>
               </div>
 
-              {initialData && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Estado</label>
-                  <select
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none transition-all appearance-none"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                  >
-                    <option value="Pendiente">Pendiente</option>
-                    <option value="Aceptado">Aceptado</option>
-                    <option value="Rechazado">Rechazado</option>
-                  </select>
-                </div>
-              )}
-            </div>
+              {/* Summary */}
+              <aside className="bg-[#081b26] text-white rounded-2xl p-5 lg:sticky lg:top-0">
+                <div className="text-xs font-bold uppercase tracking-widest text-[#8fd8ec]">Resumen</div>
+                <dl className="mt-4 flex flex-col gap-2.5 text-sm">
+                  <div className="flex justify-between">
+                    <dt className="text-[#b7d4e0]">Ítems</dt>
+                    <dd className="font-semibold">{includedCount}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-[#b7d4e0]">No incluidos</dt>
+                    <dd className="font-semibold">{excludedCount}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-[#b7d4e0]">Validez</dt>
+                    <dd className="font-semibold">{validityEnabled ? validity || '—' : 'Sin validez'}</dd>
+                  </div>
+                </dl>
 
-            {/* ── Budget Item Editor (mobile + desktop) ── */}
-            <BudgetItemEditor
-              items={items}
-              onItemsChange={setItems}
-              isManualMode={isManualMode}
-            />
-          </div>
+                <div className="my-4 h-px bg-[#1d3a4a]" />
 
-          {/* Footer */}
-          <div className="p-6 border-t border-slate-100 bg-slate-50/50 shrink-0">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-              <div className="flex items-center gap-3">
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     className="sr-only peer"
                     checked={isManualMode}
-                    onChange={() => {
-                      setIsManualMode(!isManualMode);
-                    }}
+                    onChange={() => setIsManualMode(!isManualMode)}
                   />
-                  <div className="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ background: 'var(--color-brand-blue)' }}></div>
-                  <span className="ml-3 text-sm font-medium text-slate-600">Ingresar total manualmente</span>
+                  <div className="w-11 h-6 rounded-full bg-white/25 peer-checked:bg-[#04b2d9] peer-focus-visible:ring-2 peer-focus-visible:ring-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                  <span className="ml-3 text-sm font-medium text-[#e8f6fc]">Ingresar total manualmente</span>
                 </label>
                 {isManualMode && (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-lg animate-in slide-in-from-left-2 duration-300">
+                  <div className="mt-3 flex items-center gap-2 text-[#8fd8ec]">
                     <AlertCircle size={14} />
-                    <span className="text-[10px] font-bold uppercase tracking-wide">Modo Manual</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wide">Modo manual</span>
                   </div>
                 )}
-              </div>
 
-              <div className="w-full md:w-auto flex items-center justify-between md:justify-end gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                {!isManualMode && <span className="text-slate-500 text-sm font-semibold uppercase">Total</span>}
+                <div className="mt-4 text-xs font-bold uppercase tracking-widest text-[#8fd8ec]">Total</div>
                 {isManualMode ? (
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                  <div className="relative mt-2">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">$</span>
                     <input
                       type="number"
                       step="0.01"
-                      className="w-32 pl-6 pr-2 py-1 border border-primary-500 rounded-lg text-lg font-bold text-primary-600 outline-none shadow-sm focus:ring-2 focus:ring-primary-200 text-right"
+                      aria-label="Total manual"
+                      className="w-full min-h-[48px] pl-7 pr-3 rounded-xl bg-white text-[#081b26] text-xl font-extrabold outline-none focus:ring-2 focus:ring-[#04b2d9] text-right"
                       value={manualTotal}
                       onChange={(e) => setManualTotal(e.target.value)}
                       autoFocus
                     />
                   </div>
                 ) : (
-                  <span className="text-2xl font-black text-primary-600 min-w-[120px] text-right">
+                  <div className="mt-1 text-3xl font-extrabold tracking-tight tabular-nums break-words">
                     {ARS(autoTotal)}
-                  </span>
+                  </div>
                 )}
-              </div>
+              </aside>
             </div>
+          </div>
 
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-3 px-4 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold hover:bg-slate-50 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                data-tour="budget-form-submit"
-                type="submit"
-                className="flex-[2] py-3 px-4 rounded-xl font-bold hover:opacity-90 shadow-lg transition-all flex items-center justify-center gap-2" style={{ background: 'var(--color-brand-blue)', color: 'white' }}
-              >
-                <CheckCircle2 size={18} />
-                {initialData ? 'Actualizar' : 'Guardar'}
-              </button>
-            </div>
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-[#cce6f0] bg-white shrink-0 flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 min-h-[48px] px-4 rounded-xl border border-[#cce6f0] bg-white text-slate-700 font-bold hover:bg-slate-50 transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              data-tour="budget-form-submit"
+              type="submit"
+              className="flex-[2] min-h-[48px] px-4 rounded-xl font-bold hover:opacity-90 shadow-lg transition-all flex items-center justify-center gap-2"
+              style={{ background: 'var(--color-brand-blue)', color: 'white' }}
+            >
+              <CheckCircle2 size={18} />
+              {initialData ? 'Actualizar' : 'Guardar'}
+            </button>
           </div>
         </form>
       </div>
     </div>
   );
 }
+
