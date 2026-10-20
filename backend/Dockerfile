@@ -1,5 +1,5 @@
-# Usar imagen Debian Bullseye (Estable y compatible)
-FROM python:3.11-slim-bullseye
+# Debian 12 (bookworm): bullseye reached EOL and its security repo returns 404
+FROM python:3.11-slim-bookworm
 
 # Labels para GHCR
 LABEL org.opencontainers.image.source="https://github.com/fer336/octopus-flow"
